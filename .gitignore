@@ -1,5 +1,5 @@
 # OS
-.DS_Store
+**.DS_Store
 
 # Python
 __pycache__/
@@ -98,3 +98,14 @@ yarn.lock
 # Build outputs
 frontend/dist/
 backend/dist/
+
+# Large files that should not be in Git
+# Python wheel packages (should be installed via pip)
+dev/*.whl
+
+# Large CSV data files in tutorials (3008 files, ~314MB)
+docs/tutorials_code/**/*.csv
+
+# Binary executables (should use Git LFS or build scripts)
+qbot/plugins/investool/investool
+pytrader/easytrader/utils/base.exe
