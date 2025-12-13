@@ -146,3 +146,14 @@ pytrader/user_config.sh
 *.parquet
 
 **.DS_Store
+
+# Large files that should not be in Git
+# Python wheel packages (should be installed via pip)
+dev/*.whl
+
+# Large CSV data files in tutorials (3008 files, ~314MB)
+docs/tutorials_code/**/*.csv
+
+# Binary executables (should use Git LFS or build scripts)
+qbot/plugins/investool/investool
+pytrader/easytrader/utils/base.exe
