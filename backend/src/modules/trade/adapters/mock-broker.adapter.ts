@@ -10,20 +10,7 @@ export class MockBrokerAdapter implements BrokerAdapter {
   private watchlistTable = 'watchlist';
 
   constructor() {
-    if (!memoryDb.list(this.balanceTable).length) {
-      memoryDb.insert(this.balanceTable, {
-        cash: 100000,
-        marketValue: 0,
-        totalAssets: 100000,
-      });
-    }
-    if (!memoryDb.list(this.watchlistTable).length) {
-      memoryDb.insert(this.watchlistTable, {
-        code: '399006.SZ',
-        name: '创业板指',
-        price: 12.34,
-      });
-    }
+    // 余额和盯盘列表会在首次使用时按用户初始化，这里不需要全局初始化
   }
 
   async placeOrder(dto: PlaceOrderDto & { ownerId?: string }): Promise<BrokerOrder> {
@@ -54,7 +41,17 @@ export class MockBrokerAdapter implements BrokerAdapter {
       filledAt: Date.now(),
       owner_id: dto.ownerId,
     });
-    const balance = this.getBalanceSync(dto.ownerId);
+    let balance = this.getBalanceSync(dto.ownerId);
+    if (!balance) {
+      // 初始化余额
+      balance = {
+        owner_id: dto.ownerId,
+        cash: 100000,
+        marketValue: 0,
+        totalAssets: 100000,
+      };
+      memoryDb.insert(this.balanceTable, balance);
+    }
     if (dto.side === 'buy') {
       balance.cash -= (dto.price ?? 10) * dto.qty;
       balance.marketValue += (dto.price ?? 10) * dto.qty;
@@ -89,7 +86,19 @@ export class MockBrokerAdapter implements BrokerAdapter {
   }
 
   async getBalance(ownerId?: string): Promise<any> {
-    return this.getBalanceSync(ownerId);
+    const balance = this.getBalanceSync(ownerId);
+    // 如果用户没有余额记录，初始化一个
+    if (!balance || balance.cash === undefined) {
+      const newBalance = {
+        owner_id: ownerId,
+        cash: 100000,
+        marketValue: 0,
+        totalAssets: 100000,
+      };
+      memoryDb.insert(this.balanceTable, newBalance);
+      return newBalance;
+    }
+    return balance;
   }
 
   async listPositions(_ownerId?: string): Promise<any[]> {
@@ -124,11 +133,12 @@ export class MockBrokerAdapter implements BrokerAdapter {
   }
 
   private getBalanceSync(ownerId?: string) {
-    return memoryDb.list<any>(this.balanceTable).find((b) => b.owner_id === ownerId) ?? {
-      cash: 0,
-      marketValue: 0,
-      totalAssets: 0,
-    };
+    const balance = memoryDb.list<any>(this.balanceTable).find((b) => b.owner_id === ownerId);
+    if (!balance) {
+      // 返回默认值，但不插入数据库（由 getBalance 方法统一处理初始化）
+      return null;
+    }
+    return balance;
   }
 }
 

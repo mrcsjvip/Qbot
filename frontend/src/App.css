@@ -1,16 +1,19 @@
 #root {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 20px 64px;
-  color: #0f172a;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
+  padding: 24px 20px 48px;
+  color: var(--qbot-text);
+  font-family: "Microsoft YaHei", "SimHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--qbot-bg);
+  min-height: 100vh;
 }
 
 .skin-soft {
-  background: linear-gradient(180deg, #f8fbff 0%, #f2f6ff 50%, #ffffff 100%);
-  border-radius: 18px;
+  background: var(--qbot-panel-bg);
+  border: 1px solid var(--qbot-border);
+  border-radius: 8px;
   padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .page {
@@ -23,11 +26,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  backdrop-filter: blur(6px);
+  background: var(--qbot-panel-bg);
+  border: 1px solid var(--qbot-border);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .hero-top {
@@ -70,25 +73,32 @@
 }
 
 .nav li {
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #f8fafc;
+  padding: 8px 16px;
+  border: 1px solid var(--qbot-border);
+  border-radius: 4px;
+  background: var(--qbot-panel-bg);
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav li:hover {
+  background: #f0f0f0;
+  border-color: var(--qbot-primary-light);
 }
 
 .nav li.active {
-  background: #e0f2fe;
-  border-color: #bae6fd;
-  color: #075985;
+  background: var(--qbot-primary);
+  border-color: var(--qbot-primary-dark);
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .panel {
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  background: #fff;
-  box-shadow: 0 8px 24px -12px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--qbot-border);
+  border-radius: 8px;
+  padding: 20px;
+  background: var(--qbot-panel-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -112,16 +122,17 @@
 }
 
 .card {
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px;
-  background: #f8fafc;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  border: 1px solid var(--qbot-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--qbot-panel-bg);
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px -18px rgba(15, 23, 42, 0.32);
+  border-color: var(--qbot-primary-light);
+  box-shadow: 0 2px 8px rgba(76, 187, 23, 0.2);
 }
 
 .card h3 {
@@ -135,33 +146,40 @@
 }
 
 .ghost {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  border-radius: 8px;
-  padding: 8px 12px;
+  border: 1px solid var(--qbot-border);
+  background: var(--qbot-panel-bg);
+  border-radius: 4px;
+  padding: 8px 16px;
   cursor: pointer;
-  transition: background 120ms ease, transform 120ms ease;
+  transition: all 0.2s;
+  color: var(--qbot-text);
 }
 
 .ghost:hover {
-  background: #f1f5f9;
-  transform: translateY(-1px);
+  background: #f0f0f0;
+  border-color: var(--qbot-primary-light);
 }
 
 .primary {
   border: none;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #fff;
-  border-radius: 10px;
-  padding: 10px 14px;
+  background-color: var(--qbot-primary);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 10px 20px;
   cursor: pointer;
-  box-shadow: 0 10px 30px -15px rgba(37, 99, 235, 0.7);
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: 1px solid var(--qbot-primary-dark);
 }
 
 .primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 34px -16px rgba(37, 99, 235, 0.8);
+  background-color: var(--qbot-primary-dark);
+  border-color: var(--qbot-primary-dark);
+}
+
+.primary:active {
+  background-color: var(--qbot-primary-dark);
+  transform: translateY(1px);
 }
 
 .two-col {
@@ -183,15 +201,22 @@
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   min-width: 120px;
+  background: #fff;
+  color: #1e293b;
+}
+
+.form-inline input::placeholder {
+  color: #94a3b8;
 }
 
 .badge {
   display: inline-block;
   padding: 2px 8px;
-  background: #e0f2fe;
-  color: #075985;
-  border-radius: 999px;
+  background: rgba(76, 187, 23, 0.15);
+  color: var(--qbot-primary-dark);
+  border-radius: 4px;
   font-size: 12px;
+  font-weight: 500;
 }
 
 .alert {
@@ -204,17 +229,31 @@
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: 45% 45%;
+  gap: 10%;
+  row-gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .kpi-card {
-  border-radius: 12px;
-  padding: 12px;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  box-shadow: 0 10px 30px -18px rgba(15, 23, 42, 0.25);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--qbot-text);
+  border: 1px solid var(--qbot-border);
+  background: var(--qbot-panel-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.kpi-card:hover {
+  border-color: var(--qbot-primary-light);
+  box-shadow: 0 4px 8px rgba(76, 187, 23, 0.15);
 }
 
 .kpi-card h2 {
@@ -254,8 +293,14 @@
 
 .panel-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .panel-subgrid {
@@ -327,35 +372,7 @@
   }
 }
 
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 12px;
-  background: radial-gradient(circle at 20% 20%, #dbeafe 0, transparent 25%),
-    radial-gradient(circle at 80% 0, #e9d5ff 0, transparent 22%),
-    radial-gradient(circle at 30% 80%, #bbf7d0 0, transparent 22%),
-    linear-gradient(180deg, #f8fbff, #eef2ff);
-}
-
-.auth-card {
-  width: min(420px, 100%);
-  padding: 24px;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 20px 60px -28px rgba(15, 23, 42, 0.45);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.auth-card input {
-  padding: 10px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-}
+/* 登录页面样式已移至 LoginPage.css */
 
 .auth-head {
   display: flex;
@@ -390,7 +407,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #2563eb;
+  background: var(--qbot-primary);
   color: #fff;
   display: inline-flex;
   align-items: center;

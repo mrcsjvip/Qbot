@@ -1,0 +1,31 @@
+# FastAPI相关
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+email-validator>=2.0.0
+
+# 认证相关
+PyJWT>=2.8.0
+bcrypt>=4.0.0
+python-jose[cryptography]>=3.3.0
+
+# 回测引擎
+backtrader
+
+# 数据处理
+pandas
+numpy
+tushare
+
+# 交易引擎（可选，如果使用交易功能）
+# easytrader  # 注意：easytrader可能需要从项目目录安装
+# 如果项目中有easytrader的本地版本，可以不安装
+
+# 其他依赖（如果项目中已有，可以不重复安装）
+# 这些依赖通常在项目根目录的requirements.txt中已包含
+# matplotlib
+# scipy
+# statsmodels
+# quantstats
+

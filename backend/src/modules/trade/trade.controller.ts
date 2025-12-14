@@ -18,13 +18,13 @@ export class TradeController {
   }
 
   @Get('entrusts')
-  entrusts() {
-    return this.tradeService.listEntrusts();
+  entrusts(@CurrentUser() user: any) {
+    return this.tradeService.listEntrusts(user.sub);
   }
 
   @Get('deals')
-  deals() {
-    return this.tradeService.listDeals();
+  deals(@CurrentUser() user: any) {
+    return this.tradeService.listDeals(user.sub);
   }
 
   @Get('orders/:id')
