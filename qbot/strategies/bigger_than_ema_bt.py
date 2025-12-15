@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
 """
 Author: Charmve yidazhang1@gmail.com
 Date: 2023-01-21 12:49:56
@@ -12,13 +11,14 @@ Blogs: charmve.blog.csdn.net
 GitHub: https://github.com/Charmve
 Description: 收盘价大于简单移动平均价。
 
-Copyright (c) 2023 by Charmve, All Rights Reserved. 
+Copyright (c) 2023 by Charmve, All Rights Reserved.
 Licensed under the MIT License.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from datetime import date, datetime  # For datetime objects
+import os
 
 # Import the backtrader platform
 import backtrader as bt
@@ -30,8 +30,7 @@ import tushare as ts
 class BiggerThanEmaStrategy(bt.Strategy):
     params = (
         # 均线参数设置15天，15日均线
-        ("maperiod", 15),
-    )
+        ("maperiod", 15), )
 
     def log(self, txt, dt=None):
         # 记录策略的执行日志
@@ -49,11 +48,12 @@ class BiggerThanEmaStrategy(bt.Strategy):
         # 加入指标
         # Add a MovingAverageSimple indicator
         self.sma = bt.indicators.SimpleMovingAverage(
-            self.datas[0], period=self.params.maperiod
-        )
+            self.datas[0], period=self.params.maperiod)
         # Indicators for the plotting show
         bt.indicators.ExponentialMovingAverage(self.datas[0], period=25)
-        bt.indicators.WeightedMovingAverage(self.datas[0], period=25, subplot=True)
+        bt.indicators.WeightedMovingAverage(self.datas[0],
+                                            period=25,
+                                            subplot=True)
         bt.indicators.StochasticSlow(self.datas[0])
         bt.indicators.MACDHisto(self.datas[0])
         rsi = bt.indicators.RSI(self.datas[0])
@@ -69,17 +69,15 @@ class BiggerThanEmaStrategy(bt.Strategy):
         # 注意: 当资金不足时，broker会拒绝订单
         if order.status in [order.Completed]:
             if order.isbuy():
-                self.log(
-                    "已买入, 价格: %.2f, 费用: %.2f, 佣金 %.2f"
-                    % (order.executed.price, order.executed.value, order.executed.comm)
-                )
+                self.log("已买入, 价格: %.2f, 费用: %.2f, 佣金 %.2f" %
+                         (order.executed.price, order.executed.value,
+                          order.executed.comm))
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
             elif order.issell():
-                self.log(
-                    "已卖出, 价格: %.2f, 费用: %.2f, 佣金 %.2f"
-                    % (order.executed.price, order.executed.value, order.executed.comm)
-                )
+                self.log("已卖出, 价格: %.2f, 费用: %.2f, 佣金 %.2f" %
+                         (order.executed.price, order.executed.value,
+                          order.executed.comm))
             # 记录当前交易数量
             self.bar_executed = len(self)
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
@@ -116,19 +114,36 @@ class BiggerThanEmaStrategy(bt.Strategy):
                 self.order = self.sell()
 
 
-def get_data(code, start="2020-01-01", end="2022-01-31"):
-    df = ts.get_k_data(code, autype="qfq", start=start, end=end)
-    df.index = pd.to_datetime(df.date)
+def get_data_pro(code: str, start="20200101", end="20221231"):
+    """
+    使用 tushare pro 获取日线行情，返回 backtrader 所需列。
+    需要环境变量 TUSHARE_TOKEN。
+    """
+    token = os.getenv("TUSHARE_TOKEN")
+    if not token:
+        raise RuntimeError("缺少 TUSHARE_TOKEN，用于调用 tushare pro")
+    pro = ts.pro_api(token)
+    df = pro.query(
+        "daily",
+        ts_code=code,
+        start_date=start.replace("-", ""),
+        end_date=end.replace("-", ""),
+    )
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=["open", "high", "low", "close", "volume", "openinterest"])
+    df["trade_date"] = pd.to_datetime(df["trade_date"])
+    df = df.sort_values("trade_date").set_index("trade_date")
+    df.rename(columns={"vol": "volume"}, inplace=True)
     df["openinterest"] = 0
-    df = df[["open", "high", "low", "close", "volume", "openinterest"]]
-    return df
+    return df[["open", "high", "low", "close", "volume", "openinterest"]]
 
-
-dataframe = get_data("600018")
-start = datetime(2020, 1, 1)
-end = datetime(2021, 12, 31)
 
 if __name__ == "__main__":
+    # 仅在本文件直接运行时才拉取数据，避免导入时触发 tushare 请求
+    dataframe = get_data_pro("600519.SH", start="20200101", end="20211231")
+    start = datetime(2020, 1, 1)
+    end = datetime(2021, 12, 31)
     # 初始化cerebro回测系统设置
     cerebro = bt.Cerebro()
     # 取得股票历史数据

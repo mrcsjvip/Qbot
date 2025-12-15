@@ -38,22 +38,28 @@ function AccountInfo() {
   const [balance, setBalance] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
       authedFetch('/trades/balance').then((r) => (r.ok ? r.json() : null)),
       authedFetch('/trades/accounts').then((r) => (r.ok ? r.json() : [])),
-    ]).then(([bal, accs]) => {
-      setBalance(bal);
-      setAccounts(accs);
-      setLoading(false);
-    });
+    ])
+      .then(([bal, accs]) => {
+        setBalance(bal);
+        setAccounts(Array.isArray(accs) ? accs : []);
+      })
+      .catch(() => {
+        setError('交易接口未就绪，使用空数据');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="loading">加载中...</div>;
 
   return (
     <div className="account-info">
+      {error && <div className="alert">{error}</div>}
       <div className="info-card">
         <h5>账户余额</h5>
         <div className="info-value">

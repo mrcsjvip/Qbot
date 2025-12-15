@@ -13,7 +13,7 @@ Description: 在这个强化学习策略示例中，我们使用了Backtrader框
 
 请注意，这只是一个简单的示例，实际交易需要更多的参数和逻辑处理。在实际交易前，请务必进行充分的测试和评估。
 
-Copyright (c) 2023 by Charmve, All Rights Reserved. 
+Copyright (c) 2023 by Charmve, All Rights Reserved.
 Licensed under the MIT License.
 '''
 
@@ -23,6 +23,7 @@ import backtrader.feeds as btfeeds
 import backtrader.analyzers as btanalyzers
 import numpy as np
 import pandas as pd
+import os
 import tushare as ts
 
 from datetime import date, datetime
@@ -31,6 +32,7 @@ from keras.layers import Dense, LSTM, Dropout
 from sklearn.preprocessing import MinMaxScaler
 from rlkit.envs.backtrader_env import BacktraderEnv
 from rlkit.envs.normalized_env import normalize
+
 
 class RLStrategy(bt.Strategy):
     params = (('period', 10), ('neurons', 50), ('lookback', 20))
@@ -55,16 +57,30 @@ class RLStrategy(bt.Strategy):
 
     def stop(self):
         self.log('(MA Period %2d) Ending Value %.2f' %
-                 (self.params.maperiod, self.broker.getvalue()), dt=None)
+                 (self.params.maperiod, self.broker.getvalue()),
+                 dt=None)
 
 
-
-def get_data(code, start="2020-01-01", end="2023-01-31"):
-    df = ts.get_k_data(code, autype="qfq", start=start, end=end)
-    df.index = pd.to_datetime(df.date)
+def get_data_pro(code: str, start="20200101", end="20231231"):
+    token = os.getenv("TUSHARE_TOKEN")
+    if not token:
+        raise RuntimeError("缺少 TUSHARE_TOKEN，用于调用 tushare pro")
+    pro = ts.pro_api(token)
+    df = pro.query(
+        "daily",
+        ts_code=code,
+        start_date=start.replace("-", ""),
+        end_date=end.replace("-", ""),
+    )
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=["open", "high", "low", "close", "volume", "openinterest"])
+    df["trade_date"] = pd.to_datetime(df["trade_date"])
+    df = df.sort_values("trade_date").set_index("trade_date")
+    df.rename(columns={"vol": "volume"}, inplace=True)
     df["openinterest"] = 0
-    df = df[["open", "high", "low", "close", "volume", "openinterest"]]
-    return df
+    return df[["open", "high", "low", "close", "volume", "openinterest"]]
+
 
 dataframe = get_data("600018")
 start = datetime(2020, 1, 1)
@@ -109,7 +125,8 @@ if __name__ == "__main__":
 
     # 输出性能指标
     thestrat = thestrats[0]
-    print('Sharpe Ratio:', thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
-   
+    print('Sharpe Ratio:',
+          thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
+
     # Plot the result
     cerebro.plot()

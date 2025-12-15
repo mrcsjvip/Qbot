@@ -31,6 +31,8 @@ else                                       #Darwin or Linux
   export USER_ID="admin"                   # replace your info
   export PASSWORD="admin1234."             # replace your info
   export MAIL_LICENSE="wafasqtakgywoobach" # replace your own 163.com / qq.com license
+  # 设置 tushare pro 访问令牌（请替换为你自己的 token）
+  export TUSHARE_TOKEN="your_tushare_pro_token"
 fi
 
 info "Successful - Environment is set up!"
@@ -44,21 +46,21 @@ cat << EOF
 
              ██████╗ ██████╗  ██████╗ ████████╗
             ██╔═══██╗██╔══██╗██╔═══██╗╚══██╔══╝
-            ██║   ██║██████╔╝██║   ██║   ██║   
-            ██║▄▄ ██║██╔══██╗██║   ██║   ██║   
-            ╚██████╔╝██████╔╝╚██████╔╝   ██║   
-             ╚══▀▀═╝ ╚═════╝  ╚═════╝    ╚═╝   
-                
+            ██║   ██║██████╔╝██║   ██║   ██║
+            ██║▄▄ ██║██╔══██╗██║   ██║   ██║
+            ╚██████╔╝██████╔╝╚██████╔╝   ██║
+             ╚══▀▀═╝ ╚═════╝  ╚═════╝    ╚═╝
+
                         Alpha Qbot
           ++++=================================++++
-                 auth: Charmve   --V.0.1   
+                 auth: Charmve   --V.0.1
 
    🤖 Qbot = 智能交易策略 + 回测系统 + 自动化交易 (+ 可视化分析工具)
                 |           |          |            |
                 |           |          |             \_ quantstats (dashboard\online operate)
                 |           |           \______________ Qbot - vnpy, pytrader, pyfunds
                 |           \__________________________ BackTest - backtrader, easyquant
-                \______________________________________ quant.ai - qlib, deep learning strategies                                   
+                \______________________________________ quant.ai - qlib, deep learning strategies
 EOF
 
 info "Run example backtest"

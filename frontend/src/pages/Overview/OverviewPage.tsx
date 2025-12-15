@@ -23,11 +23,11 @@ export default function OverviewPage() {
           authedFetch('/reports').then((r) => (r.ok ? r.json() : [])),
           authedFetch('/trades/balance').then((r) => (r.ok ? r.json() : null)),
         ]);
-        setBacktests(bt ?? []);
-        setOrders(ord ?? []);
-        setStrategies(stg ?? []);
-        setReports(rps ?? []);
-        setBalance(bal ?? null);
+        setBacktests(Array.isArray(bt) ? bt : []);
+        setOrders(Array.isArray(ord) ? ord : []);
+        setStrategies(Array.isArray(stg) ? stg : []);
+        setReports(Array.isArray(rps) ? rps : []);
+        setBalance(bal && typeof bal === 'object' ? bal : null);
       } catch (e: any) {
         setError('无法获取后端数据，请确认后端已启动或已登录');
         console.error(e);

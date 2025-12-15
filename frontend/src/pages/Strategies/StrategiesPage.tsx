@@ -21,12 +21,17 @@ export default function StrategiesPage() {
     try {
       setLoading(true);
       const resp = await authedFetch('/strategies');
-      if (resp.ok) {
-        const data = await resp.json();
-        setStrategies(data);
+      if (!resp.ok) {
+        setStrategies([]);
+        setError('策略接口未就绪，使用空数据');
+        return;
       }
+      const data = await resp.json();
+      const list = Array.isArray(data) ? data : [];
+      setStrategies(list);
     } catch (e) {
       setError('加载策略失败');
+      setStrategies([]);
     } finally {
       setLoading(false);
     }
@@ -56,6 +61,8 @@ export default function StrategiesPage() {
       setLoading(false);
     }
   };
+
+  const strategyList = Array.isArray(strategies) ? strategies : [];
 
   return (
     <div className="strategies-page">
@@ -88,10 +95,10 @@ export default function StrategiesPage() {
       <div className="strategies-grid">
         {loading ? (
           <div className="loading">加载中...</div>
-        ) : strategies.length === 0 ? (
+        ) : strategyList.length === 0 ? (
           <div className="empty">暂无策略</div>
         ) : (
-          strategies.map((strategy) => (
+          strategyList.map((strategy) => (
             <div key={strategy.id} className="strategy-card">
               <h3>{strategy.name}</h3>
               <p className="strategy-id">ID: {strategy.id}</p>

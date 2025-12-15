@@ -25,12 +25,15 @@ export default function BacktestParams({ form, onChange, onStart, loading }: Bac
     authedFetch('/strategies')
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
-        setStrategies(data);
-        if (data.length > 0 && !form.strategyId) {
-          onChange({ ...form, strategyId: data[0].id });
+        const list = Array.isArray(data) ? data : [];
+        setStrategies(list);
+        if (list.length > 0 && !form.strategyId) {
+          onChange({ ...form, strategyId: list[0].id });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setStrategies([]);
+      });
   }, []);
 
   const handleChange = (field: string, value: string | number) => {
@@ -102,11 +105,15 @@ export default function BacktestParams({ form, onChange, onStart, loading }: Bac
           value={form.strategyId}
           onChange={(e) => handleChange('strategyId', e.target.value)}
         >
-          {strategies.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
+          {strategies.length === 0 ? (
+            <option value="">无可用策略</option>
+          ) : (
+            strategies.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))
+          )}
         </select>
       </div>
 

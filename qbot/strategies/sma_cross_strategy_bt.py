@@ -7,7 +7,7 @@ FilePath: /Qbot/qbot/strategies/sma_cross_strategy_bt.py
 Version: 1.0.1
 Blogs: charmve.blog.csdn.net
 GitHub: https://github.com/Charmve
-Description: 
+Description:
 
 在这个例子中，我们使用了Backtrader框架和Alpaca API来实现自动化交易。我们首先定义了策略`SmaCross`，该策略基于两个简单移动平均线的交叉来进行买卖点的判断。在`next`方法中，我们检查当前是否持有头寸，如果没有，我们计算可用资金并计算购买股票的数量，然后买入该股票。如果当前持有头寸，则判断是否需要卖出。
 
@@ -15,7 +15,7 @@ Description:
 
 请注意，这只是一个简单的示例，实际交易需要更多的参数和逻辑处理。在实际交易前，请务必进行充分的测试和评估。
 
-Copyright (c) 2023 by Charmve, All Rights Reserved. 
+Copyright (c) 2023 by Charmve, All Rights Reserved.
 Licensed under the MIT License.
 '''
 import backtrader as bt
@@ -23,14 +23,19 @@ import backtrader.indicators as btind
 import backtrader.feeds as btfeeds
 import backtrader.analyzers as btanalyzers
 import pandas as pd
+import os
 import tushare as ts
 
 from datetime import date, datetime
 
 # import alpaca_backtrader_api
 
+
 class SmaCross(bt.Strategy):
-    params = (('pfast', 10), ('pslow', 30),)
+    params = (
+        ('pfast', 10),
+        ('pslow', 30),
+    )
 
     def __init__(self):
         sma1 = btind.SMA(period=self.p.pfast)
@@ -46,6 +51,7 @@ class SmaCross(bt.Strategy):
         elif self.position.size > 0:
             if self.crossover < 0:
                 self.close()
+
 
 # # 设置证券交易所
 # alpaca_endpoint = '<https://paper-api.alpaca.markets>'
@@ -66,12 +72,27 @@ class SmaCross(bt.Strategy):
 #     compression=1
 # )
 
-def get_data(code, start="2020-01-01", end="2023-01-31"):
-    df = ts.get_k_data(code, autype="qfq", start=start, end=end)
-    df.index = pd.to_datetime(df.date)
+
+def get_data_pro(code: str, start="20200101", end="20231231"):
+    token = os.getenv("TUSHARE_TOKEN")
+    if not token:
+        raise RuntimeError("缺少 TUSHARE_TOKEN，用于调用 tushare pro")
+    pro = ts.pro_api(token)
+    df = pro.query(
+        "daily",
+        ts_code=code,
+        start_date=start.replace("-", ""),
+        end_date=end.replace("-", ""),
+    )
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=["open", "high", "low", "close", "volume", "openinterest"])
+    df["trade_date"] = pd.to_datetime(df["trade_date"])
+    df = df.sort_values("trade_date").set_index("trade_date")
+    df.rename(columns={"vol": "volume"}, inplace=True)
     df["openinterest"] = 0
-    df = df[["open", "high", "low", "close", "volume", "openinterest"]]
-    return df
+    return df[["open", "high", "low", "close", "volume", "openinterest"]]
+
 
 dataframe = get_data("600018")
 start = datetime(2020, 1, 1)
@@ -116,8 +137,8 @@ if __name__ == "__main__":
 
     # 输出性能指标
     thestrat = thestrats[0]
-    print('Sharpe Ratio:', thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
-   
+    print('Sharpe Ratio:',
+          thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
+
     # Plot the result
     cerebro.plot()
-

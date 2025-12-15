@@ -22,10 +22,13 @@ export default function ReportsPage() {
       const resp = await authedFetch('/reports');
       if (resp.ok) {
         const data = await resp.json();
-        setReports(data);
+        setReports(Array.isArray(data) ? data : []);
+      } else {
+        setReports([]);
       }
     } catch (e) {
       setError('加载研报失败');
+      setReports([]);
     } finally {
       setLoading(false);
     }

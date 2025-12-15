@@ -11,17 +11,19 @@ Description: 在这个示例中，我们使用了backtrader的内置数据源Gen
         在初始化策略时，我们使用了SimpleMovingAverage和RelativeStrengthIndex等指标，用于判断买卖点。
         在每个交易点，我们使用log函数来输出交易信息。在运行引擎后，我们使用ShapreRatio性能分析器来输出交易性能指标。
 
-Copyright (c) 2023 by Charmve, All Rights Reserved. 
+Copyright (c) 2023 by Charmve, All Rights Reserved.
 Licensed under the MIT License.
 '''
 import backtrader as bt
 import backtrader.feeds as btfeeds
 import backtrader.indicators as btind
 import backtrader.analyzers as btanalyzers
+import os
 import pandas as pd
 import tushare as ts
 
 from datetime import date, datetime
+
 
 class MultiStrategy(bt.Strategy):
     params = (
@@ -38,9 +40,8 @@ class MultiStrategy(bt.Strategy):
         self.order = None
         self.buyprice = None
         self.buycomm = None
-        self.sma = btind.SimpleMovingAverage(
-            self.datas[0], period=self.params.maperiod
-        )
+        self.sma = btind.SimpleMovingAverage(self.datas[0],
+                                             period=self.params.maperiod)
         self.rsi = btind.RelativeStrengthIndex()
 
     def notify_order(self, order):
@@ -48,17 +49,14 @@ class MultiStrategy(bt.Strategy):
             return
         if order.status == order.Completed:
             if order.isbuy():
-                self.log(
-                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm: %.2f' %
-                    (order.executed.price,
-                     order.executed.value,
-                     order.executed.comm))
+                self.log('BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm: %.2f' %
+                         (order.executed.price, order.executed.value,
+                          order.executed.comm))
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
             else:
                 self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm: %.2f' %
-                         (order.executed.price,
-                          order.executed.value,
+                         (order.executed.price, order.executed.value,
                           order.executed.comm))
             self.bar_executed = len(self)
 
@@ -78,32 +76,46 @@ class MultiStrategy(bt.Strategy):
         if self.order:
             return
         if not self.position:
-            if (self.rsi[0] < 50 and
-                    self.rsi[-1] >= 50 and
-                    self.dataclose[0] > self.sma[0]):
+            if (self.rsi[0] < 50 and self.rsi[-1] >= 50
+                    and self.dataclose[0] > self.sma[0]):
                 self.log('BUY CREATE, %.2f' % self.dataclose[0])
                 self.order = self.buy()
         else:
-            if (self.rsi[0] > 50 and
-                    self.rsi[-1] <= 50 and
-                    self.dataclose[0] < self.sma[0]):
+            if (self.rsi[0] > 50 and self.rsi[-1] <= 50
+                    and self.dataclose[0] < self.sma[0]):
                 self.log('SELL CREATE, %.2f' % self.dataclose[0])
                 self.order = self.sell()
 
     def stop(self):
         self.log('(MA Period %2d) Ending Value %.2f' %
-                 (self.params.maperiod, self.broker.getvalue()), dt=None)
+                 (self.params.maperiod, self.broker.getvalue()),
+                 dt=None)
 
-def get_data(code, start="2020-01-01", end="2023-01-31"):
-    df = ts.get_k_data(code, autype="qfq", start=start, end=end)
-    df.index = pd.to_datetime(df.date)
+
+def get_data_pro(code: str, start="20200101", end="20231231"):
+    """
+    使用 tushare pro 获取日线行情，返回 backtrader 所需列。
+    需要环境变量 TUSHARE_TOKEN。
+    """
+    token = os.getenv("TUSHARE_TOKEN")
+    if not token:
+        raise RuntimeError("缺少 TUSHARE_TOKEN，用于调用 tushare pro")
+    pro = ts.pro_api(token)
+    df = pro.query(
+        "daily",
+        ts_code=code,
+        start_date=start.replace("-", ""),
+        end_date=end.replace("-", ""),
+    )
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=["open", "high", "low", "close", "volume", "openinterest"])
+    df["trade_date"] = pd.to_datetime(df["trade_date"])
+    df = df.sort_values("trade_date").set_index("trade_date")
+    df.rename(columns={"vol": "volume"}, inplace=True)
     df["openinterest"] = 0
-    df = df[["open", "high", "low", "close", "volume", "openinterest"]]
-    return df
+    return df[["open", "high", "low", "close", "volume", "openinterest"]]
 
-dataframe = get_data("600018")
-start = datetime(2020, 1, 1)
-end = datetime(2021, 12, 31)
 
 if __name__ == "__main__":
 
@@ -122,6 +134,10 @@ if __name__ == "__main__":
     #     volume=5,
     #     openinterest=-1,
     # )
+
+    dataframe = get_data_pro("600519.SH", start="20200101", end="20211231")
+    start = datetime(2020, 1, 1)
+    end = datetime(2021, 12, 31)
 
     data = bt.feeds.PandasData(dataname=dataframe, fromdate=start, todate=end)
     print(data)
@@ -144,7 +160,8 @@ if __name__ == "__main__":
 
     # 输出性能指标
     thestrat = thestrats[0]
-    print('Sharpe Ratio:', thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
-   
+    print('Sharpe Ratio:',
+          thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
+
     # Plot the result
     cerebro.plot()

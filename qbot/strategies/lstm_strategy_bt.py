@@ -14,7 +14,7 @@ Description: 在这个LSTM策略示例中，我们使用了Keras和Backtrader框
 
 请注意，这只是一个简单的示例，实际交易需要更多的参数和逻辑处理。在实际交易前，请务必进行充分的测试和评估。
 
-Copyright (c) 2023 by Charmve, All Rights Reserved. 
+Copyright (c) 2023 by Charmve, All Rights Reserved.
 Licensed under the MIT License.
 '''
 import backtrader as bt
@@ -23,6 +23,7 @@ import backtrader.feeds as btfeeds
 import backtrader.analyzers as btanalyzers
 import pandas as pd
 import numpy as np
+import os
 import tushare as ts
 
 from datetime import date, datetime
@@ -31,8 +32,10 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 from sklearn.preprocessing import MinMaxScaler
 
+
 class LSTMPredict(bt.Strategy):
-    params = (('period', 10), ('neurons', 50), ('train_size', 0.8), ('lookback', 20))
+    params = (('period', 10), ('neurons', 50), ('train_size', 0.8),
+              ('lookback', 20))
 
     def __init__(self):
         self.dataclose = self.datas[0].close
@@ -41,7 +44,11 @@ class LSTMPredict(bt.Strategy):
         self.train_size = self.p.train_size
         self.train_data, self.test_data = self._prepare_data()
         self.model = self._build_model()
-        self.model.fit(self.train_data['X'], self.train_data['Y'], epochs=50, batch_size=1, verbose=2)
+        self.model.fit(self.train_data['X'],
+                       self.train_data['Y'],
+                       epochs=50,
+                       batch_size=1,
+                       verbose=2)
 
     def _prepare_data(self):
         data = np.array(self.dataclose)
@@ -50,7 +57,12 @@ class LSTMPredict(bt.Strategy):
         train_size = int(len(data) * self.train_size)
         train_data = data[:train_size]
         test_data = data[train_size:]
-        return {'X': self._prepare_X(train_data), 'Y': self._prepare_Y(train_data)}, {'X': self._prepare_X(test_data)}
+        return {
+            'X': self._prepare_X(train_data),
+            'Y': self._prepare_Y(train_data)
+        }, {
+            'X': self._prepare_X(test_data)
+        }
 
     def _prepare_X(self, data):
         X, Y = [], []
@@ -91,12 +103,27 @@ class LSTMPredict(bt.Strategy):
             if self.dataclose[0] > self.position.price * 1.05:
                 self.sell(size=self.position.size)
 
-def get_data(code, start="2020-01-01", end="2023-01-31"):
-    df = ts.get_k_data(code, autype="qfq", start=start, end=end)
-    df.index = pd.to_datetime(df.date)
+
+def get_data_pro(code: str, start="20200101", end="20231231"):
+    token = os.getenv("TUSHARE_TOKEN")
+    if not token:
+        raise RuntimeError("缺少 TUSHARE_TOKEN，用于调用 tushare pro")
+    pro = ts.pro_api(token)
+    df = pro.query(
+        "daily",
+        ts_code=code,
+        start_date=start.replace("-", ""),
+        end_date=end.replace("-", ""),
+    )
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=["open", "high", "low", "close", "volume", "openinterest"])
+    df["trade_date"] = pd.to_datetime(df["trade_date"])
+    df = df.sort_values("trade_date").set_index("trade_date")
+    df.rename(columns={"vol": "volume"}, inplace=True)
     df["openinterest"] = 0
-    df = df[["open", "high", "low", "close", "volume", "openinterest"]]
-    return df
+    return df[["open", "high", "low", "close", "volume", "openinterest"]]
+
 
 dataframe = get_data("600018")
 start = datetime(2020, 1, 1)
@@ -141,9 +168,8 @@ if __name__ == "__main__":
 
     # 输出性能指标
     thestrat = thestrats[0]
-    print('Sharpe Ratio:', thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
-   
+    print('Sharpe Ratio:',
+          thestrat.analyzers.mysharpe.get_analysis()['sharperatio'])
+
     # Plot the result
     cerebro.plot()
-
-

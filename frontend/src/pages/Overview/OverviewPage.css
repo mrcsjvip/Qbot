@@ -1,6 +1,19 @@
 /* Overview page specific styles */
 
+.overview-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
 .kpi-grid {
   margin-left: 0;
   width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.panel-grid {
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  align-items: stretch;
 }

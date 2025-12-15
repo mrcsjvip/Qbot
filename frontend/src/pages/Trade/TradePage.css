@@ -189,7 +189,7 @@
 }
 
 .nav-tabs button.active {
-  background: rgba(76, 187, 23, 0.1);
+  background: rgba(77, 163, 255, 0.12);
   color: var(--qbot-primary);
   border-left: 3px solid var(--qbot-primary);
   font-weight: 600;
@@ -335,7 +335,7 @@ table td.loss {
 .param-group select:focus {
   outline: none;
   border-color: var(--qbot-primary);
-  box-shadow: 0 0 0 3px rgba(76, 187, 23, 0.2);
+  box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.2);
 }
 
 .params-actions {
